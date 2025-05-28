@@ -1,0 +1,35 @@
+{% extends "layout.html" %}
+{% block body %}
+    <h1>Quiz Game!</h1>
+    <p>Enter your player name</p>
+
+        <form method="post">
+            <input type="text" name="player" placeholder="PlayerName" required>    
+            <button type="submit">Add new player</button>
+        </form>
+
+        <P>
+            {% for player_name in players_names %}
+                <p value={{ player_name }}>  {{ player_name.name }}  </p>
+            {% endfor %}
+        </P>
+
+        <form action="/clear" method="get">
+            <button tye="submit"> Reset all Players </button>
+        </form>
+        <p>
+            <form action="/game" method="get">
+                <button type="submit"> Start Quiz! </button>
+            </form>
+        </p>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul class="flashes">
+                {% for message in messages %}
+                    <li style="color: red;">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+
+{%endblock%}

@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+{% block body %}
+    <h1>Here is game</h1>
+
+    <h1> {{ Question }} </h1>
+
+    <form method="POST">
+        {% for label, answer in answers.items() %}
+            <button class="answer-button" name="answer" value="{{ label }}">
+                 {{ label }} : {{ answer }}
+            </button><br>
+        {% endfor %}
+    </form>
+
+    <style>
+    .answer-button {
+        display: block;
+        margin: 10px 0;
+        padding: 10px 20px;
+        font-size: 1.1em;
+    }
+    </style>
+{%endblock%}
