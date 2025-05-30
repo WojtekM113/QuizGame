@@ -1,23 +1,169 @@
 {% extends "layout.html" %}
 {% block body %}
-    <h1>Here is game</h1>
-
-    <h1> {{ Question }} </h1>
-
-    <form method="POST">
-        {% for label, answer in answers.items() %}
-            <button class="answer-button" name="answer" value="{{ label }}">
-                 {{ label }} : {{ answer }}
-            </button><br>
-        {% endfor %}
-    </form>
-
     <style>
-    .answer-button {
-        display: block;
-        margin: 10px 0;
-        padding: 10px 20px;
-        font-size: 1.1em;
+ 
+ 
+    .wrongAnswer {
+        border: 3px solid rgba(255, 0, 0, 0.329) !important; 
+        background-color: rgba(255, 0, 0, 0.082) !important;
+         
+    }
+
+    .correctAnswer {
+        border: 3px solid #00b1005b !important;
+        background-color: rgba(1, 255, 1, 0.075) !important;
+      
+    }
+
+    .disable {
+        cursor: not-allowed;
+        opacity: 0.3;
+        pointer-events: none;
+    }
+
+    .clicked {
+        border: solid black !important;
+    }
+
+    .correctClicked {
+    background-color: #00b100 !important;   /* solid green */
+    color: white !important;
+    border: 3px solid #000000 !important;
+    }
+
+    .wrongClicked {
+        background-color: rgb(255, 0, 0) !important;  /* solid red */
+        color: white !important;
+        border: 3px solid rgb(0, 0, 0) !important;
+    }
+    
+    .responsive-margin{
+        margin-left: 5%;
+        margin-right: 5%;
+    }
+
+    @media (min-width: 768px) {
+    .responsive-margin {
+        margin-left: 15%;
+        margin-right: 15%;
+    }
+    }
+
+    @media (min-width: 1200px) {
+    .responsive-margin {
+        margin-left: 25%;
+        margin-right: 25%;
+    }
+    }
+    
+
+    @media (min-width: 2000px) {
+    .responsive-margin {
+        margin-left: 25%;
+        margin-right: 25%;
+    }
     }
     </style>
-{%endblock%}
+  
+ 
+    <div class="card responsive-margin " style="margin-bottom: 2%; margin-top: 25px;">
+        <div class="card-header" style="text-align: center;">
+            <h5>Current question</h5>
+        </div>
+        <div class="card-body" style="text-align: center; height: 200px;">
+            <h4> {{ Question }} </h4>
+        </div>
+    </div>
+
+     
+
+    <div class="card responsive-margin" style="margin-bottom: 3%; text-align: center; height: 300px;">
+        <div class="card-header">
+            <h5 class="text-center responsive-margin my-4" style="color: rgba(75, 75, 252, 0.904);"> Current player: {{ current_player }}</h5>       
+        </div>
+        <div class="card-body" style="height: 4.5rem;">
+             
+            <h4 id="correct-answer" style="display: none;">Correct answer: {{ correct_answer }} </h4>
+            <h3 id="playerPoints" class="text-center" style="visibility: hidden; margin-bottom: 2%;"> You got: {{ point }} points</h3>
+        </div>
+    </div>
+
+    <form method="POST">
+        <div class="row row-cols-2 row-cols-md-2 g-3 responsive-margin">
+            {% for label, answer in answers.items() %}
+                <div class="col d-flex">
+                    <button class="answer-button btn btn-outline-primary flex-fill" style="height: 100px; min-width: 120px;" name="answer" value="{{ label }}" id="button-{{ loop.index }}">
+                        {{ label }} : {{ answer }}
+                    </button>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="d-flex justify-content-center mt-3">
+            <button type="submit" class="btn btn-primary btn-lg" id="nextButton" style="display: none; ">
+                 Next Question
+            </button>
+        </div>
+    </form>
+
+    <script>
+    const correctAnswerValue = '{{ correct_labeled_answer|default("")|trim }}';
+
+    // Select all answer buttons
+    const answerButtons = document.querySelectorAll('.answer-button');
+
+    answerButtons.forEach(clickedButton => {
+        clickedButton.addEventListener('click', function (event) {
+        event.preventDefault();
+
+        const selectedAnswerValue = clickedButton.value.trim();
+
+        // Loop through all buttons to apply styles based on correctness
+        answerButtons.forEach(answerButton => {
+            const buttonValue = answerButton.value.trim();
+
+            // Outline correct/wrong for all buttons
+            if (buttonValue === correctAnswerValue) {
+                answerButton.classList.add('correctAnswer');
+            } else {
+                answerButton.classList.add('wrongAnswer');
+            }
+
+            if (answerButton === clickedButton) {
+                answerButton.classList.add('clicked');
+                if (buttonValue === correctAnswerValue) {
+                    answerButton.classList.add('correctClicked');
+                } else {
+                    answerButton.classList.add('wrongClicked');
+                }
+            } else {
+                answerButton.classList.add('disable');
+            }
+
+            answerButton.disabled = true;
+        });
+
+        // Show next question button
+        const nextButton = document.getElementById('nextButton');
+    
+
+        // Show correct answer
+        const correctAnswerElement = document.getElementById('correct-answer');
+        if (correctAnswerElement) {
+            correctAnswerElement.style.display = 'inline-block';
+        }
+
+        const pointElement = document.getElementById('playerPoints');
+        if (pointElement) {
+            setTimeout(() => {
+                pointElement.style.visibility = 'visible';
+                correctAnswerElement.style.display = 'none'
+                nextButton.style.display = 'inline-block';
+            }, 1300); // Show points after 1.5 seconds
+        }
+        });
+    });
+    </script>
+
+
+    {%endblock%}

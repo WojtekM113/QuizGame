@@ -68,24 +68,44 @@ def gameView():
     current_player = active_players[current_index] 
 
     current_question = current_player.questions[0]
-    question = current_question["question"]
-    correct_answer = current_question["correct_answer"]
-    wrong_answer = current_question["incorrect_answers"]
+    question = html.unescape(current_question["question"])
+    correct_answer = html.unescape(current_question["correct_answer"])
+    wrong_answer = html.unescape(current_question["incorrect_answers"])
 
     all_answers = [correct_answer] + wrong_answer
-    labeled_answers = {label: ans for label, ans in zip(["A", "B", "C", "D"], all_answers)}
+    random.shuffle(all_answers)
+    labeled_answers = {label: answer for label, answer in zip(["A", "B", "C", "D"], all_answers)}
+    
+    correct_labeled_answer = None
+    for label, answer in labeled_answers.items():
+        if answer == correct_answer:
+            correct_labeled_answer = label
+            break
 
+    selected = None        
+    current_point = 0
     if request.method == "POST":
         selected = request.form.get("answer")
         if selected ==  correct_answer:
             current_player.add_point()
+            current_point = 1
+        current_point = 0
         
-
         current_player.questions.pop(0)
-
+        # if no questions for players left redirect back to index
+        if all(not player.questions for player in all_players):
+            return redirect(url_for("index"))
+        
         session['current_player_index'] = (current_index + 1) % len(active_players)
-        redirect(url_for("gameView"))
-    return render_template("gameView.html", Question=question, answers=labeled_answers)
+        # redirect back to game so we dont stay in POST
+        return redirect(url_for("gameView"))
+    return render_template("gameView.html", 
+                           Question=question
+                           , answers=labeled_answers
+                           ,correct_answer=correct_answer
+                           , correct_labeled_answer=correct_labeled_answer
+                           , selected=selected,current_player=current_player.name
+                           ,point=current_point )
 
  
 @app.route("/loadingScreen", methods=['GET', 'POST'])
@@ -96,16 +116,17 @@ def loading():
         flash("No players added!")
         return redirect(url_for("index"))
     
-    number = session.get("number_of_questions", 1)
-    total_questions = number * len(all_players) - 1
+    number = session.get("number_of_questions")
+    total_questions = number * len(all_players)
     
     response = requests.get(f"https://opentdb.com/api.php?amount={total_questions}&type=multiple")
     data = response.json()
     
+ 
     if "results" not in data or len(data["results"]) < total_questions:
-        flash("Not enough questions available try again later.")
+        flash("Not enough questions available, please try again later.")
         return redirect(url_for("index"))
-    
+
     questions = data["results"]
     
     # Assign questions evenly and reset points
